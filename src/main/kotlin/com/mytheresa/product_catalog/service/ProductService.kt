@@ -1,5 +1,6 @@
 package com.mytheresa.product_catalog.service
 
+import com.mytheresa.product_catalog.converter.ProductConverter
 import com.mytheresa.product_catalog.dto.ProductResponseDto
 import com.mytheresa.product_catalog.repository.ProductRepository
 import org.springframework.data.domain.Page
@@ -10,14 +11,15 @@ import org.springframework.stereotype.Service
 @Service
 class ProductService(
     private val productRepository: ProductRepository,
-    private val discountService: DiscountService
+    private val discountService: DiscountService,
+    private val productConverter: ProductConverter,
 ) {
     fun getProducts(
         category: String?,
         sortBy: String,
         sortDirection: String,
         pageNumber: Int,
-        pageSize: Int
+        pageSize: Int,
     ): Page<ProductResponseDto> {
         if (pageNumber < 0) {
             throw IllegalArgumentException("Page number must be non-negative")
@@ -47,22 +49,16 @@ class ProductService(
         }
         val pageable = PageRequest.of(pageNumber, pageSize, sort)
 
-        val productsPage = category
+        val entityPage = category
             ?.let { productRepository.findByCategoryIgnoreCase(it, pageable) }
             ?: productRepository.findAll(pageable)
 
-        return productsPage.map { product ->
+        return entityPage.map { entity ->
+            val product = productConverter.toDomain(entity)
             val discount = discountService.calculateDiscount(product)
-            val finalPrice = discountService.calculateFinalPrice(product.price, discount)
+            val finalPrice = product.price.applyDiscountPercent(discount)
 
-            ProductResponseDto(
-                sku = product.sku,
-                description = product.description,
-                category = product.category,
-                price = product.price,
-                discount = discount,
-                finalPrice = finalPrice
-            )
+            productConverter.toDto(product, discount, finalPrice)
         }
     }
 

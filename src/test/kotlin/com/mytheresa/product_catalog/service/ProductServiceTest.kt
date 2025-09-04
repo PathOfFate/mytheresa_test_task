@@ -1,16 +1,15 @@
 package com.mytheresa.product_catalog.service
 
 import com.mytheresa.product_catalog.config.DiscountProperties
-import com.mytheresa.product_catalog.entity.Product
+import com.mytheresa.product_catalog.converter.ProductConverter
+import com.mytheresa.product_catalog.entity.ProductEntity
 import com.mytheresa.product_catalog.repository.ProductRepository
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
@@ -19,11 +18,13 @@ import java.math.BigDecimal
 class ProductServiceTest {
     
     lateinit var productRepository: ProductRepository
+    lateinit var productConverter: ProductConverter
     lateinit var productService: ProductService
     
     @BeforeEach
     fun setUp() {
         productRepository = mockk()
+        productConverter = ProductConverter()
         val discountProperties = DiscountProperties().apply {
             rules = listOf(
                 DiscountProperties.DiscountRule(
@@ -47,20 +48,19 @@ class ProductServiceTest {
             )
         }
         val discountService = DiscountService(discountProperties)
-        productService = ProductService(productRepository, discountService)
+        productService = ProductService(productRepository, discountService, productConverter)
     }
     
     @Test
     fun `return all products without filter`() {
         // Given
-        val products = listOf(
-            Product("ELEC-001", BigDecimal("100.00"), "Test Electronics", "Electronics"),
-            Product("HOME-001", BigDecimal("50.00"), "Test Home", "Home & Kitchen"),
-            Product("CLOTH-001", BigDecimal("25.00"), "Test Clothing", "Clothing")
+        val entities = listOf(
+            ProductEntity("ELEC-001", BigDecimal("100.00"), "Test Electronics", "Electronics"),
+            ProductEntity("HOME-001", BigDecimal("50.00"), "Test Home", "Home & Kitchen"),
+            ProductEntity("CLOTH-001", BigDecimal("25.00"), "Test Clothing", "Clothing")
         )
-        val pageable = PageRequest.of(0, 10)
         val sortedPageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "sku"))
-        val page = PageImpl(products, sortedPageable, products.size.toLong())
+        val page = PageImpl(entities, sortedPageable, entities.size.toLong())
         
         every { productRepository.findAll(sortedPageable) } returns page
         
@@ -83,10 +83,9 @@ class ProductServiceTest {
     fun `filter products by category`() {
         // Given
         val electronics = listOf(
-            Product("ELEC-001", BigDecimal("99.99"), "Smart TV", "Electronics"),
-            Product("ELEC-002", BigDecimal("149.99"), "Laptop", "Electronics")
+            ProductEntity("ELEC-001", BigDecimal("99.99"), "Smart TV", "Electronics"),
+            ProductEntity("ELEC-002", BigDecimal("149.99"), "Laptop", "Electronics")
         )
-        val pageable = PageRequest.of(0, 10)
         val sortedPageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "sku"))
         val page = PageImpl(electronics, sortedPageable, electronics.size.toLong())
         
@@ -115,11 +114,10 @@ class ProductServiceTest {
     fun `sort products by SKU ascending`() {
         // Given
         val products = listOf(
-            Product("A-SKU", BigDecimal("50.00"), "Product A", "Home & Kitchen"),
-            Product("B-SKU", BigDecimal("25.00"), "Product B", "Clothing"),
-            Product("C-SKU", BigDecimal("100.00"), "Product C", "Electronics")
+            ProductEntity("A-SKU", BigDecimal("50.00"), "Product A", "Home & Kitchen"),
+            ProductEntity("B-SKU", BigDecimal("25.00"), "Product B", "Clothing"),
+            ProductEntity("C-SKU", BigDecimal("100.00"), "Product C", "Electronics")
         )
-        val pageable = PageRequest.of(0, 10)
         val sortedPageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "sku"))
         val page = PageImpl(products, sortedPageable, products.size.toLong())
         
@@ -144,12 +142,11 @@ class ProductServiceTest {
     fun `sort products by price descending`() {
         // Given
         val products = listOf(
-            Product("HOME-001", BigDecimal("100.00"), "Blender", "Home & Kitchen"),
-            Product("ELEC-001", BigDecimal("50.00"), "Headphones", "Electronics"),
-            Product("CLOTH-001", BigDecimal("25.00"), "T-Shirt", "Clothing")
+            ProductEntity("HOME-001", BigDecimal("100.00"), "Blender", "Home & Kitchen"),
+            ProductEntity("ELEC-001", BigDecimal("50.00"), "Headphones", "Electronics"),
+            ProductEntity("CLOTH-001", BigDecimal("25.00"), "T-Shirt", "Clothing")
         )
-        val pageable = PageRequest.of(0, 10)
-        val sortedPageable = PageRequest.of(0, 10, 
+        val sortedPageable = PageRequest.of(0, 10,
             Sort.by(Sort.Direction.DESC, "price")
                 .and(Sort.by(Sort.Direction.ASC, "sku"))
         )
@@ -176,11 +173,10 @@ class ProductServiceTest {
     fun `apply correct discounts to products`() {
         // Given
         val products = listOf(
-            Product("ELEC-001", BigDecimal("100.00"), "Electronics Item", "Electronics"),
-            Product("HOME-001", BigDecimal("100.00"), "Kitchen Item", "Home & Kitchen"),
-            Product("TEST-005", BigDecimal("100.00"), "Special SKU Item", "Other")
+            ProductEntity("ELEC-001", BigDecimal("100.00"), "Electronics Item", "Electronics"),
+            ProductEntity("HOME-001", BigDecimal("100.00"), "Kitchen Item", "Home & Kitchen"),
+            ProductEntity("TEST-005", BigDecimal("100.00"), "Special SKU Item", "Other")
         )
-        val pageable = PageRequest.of(0, 10)
         val sortedPageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "sku"))
         val page = PageImpl(products, sortedPageable, products.size.toLong())
         
@@ -216,9 +212,8 @@ class ProductServiceTest {
     fun `paginate results correctly`() {
         // Given
         val allProducts = (1..10).map { i ->
-            Product("ELEC-${i.toString().padStart(3, '0')}", BigDecimal("${i * 10}.00"), "Product $i", "Electronics")
+            ProductEntity("ELEC-${i.toString().padStart(3, '0')}", BigDecimal("${i * 10}.00"), "Product $i", "Electronics")
         }
-        val pageable = PageRequest.of(0, 3)
         val sortedPageable = PageRequest.of(0, 3, Sort.by(Sort.Direction.ASC, "sku"))
         val page = PageImpl(allProducts.take(3), sortedPageable, allProducts.size.toLong())
         
@@ -243,9 +238,8 @@ class ProductServiceTest {
     @Test
     fun `return empty page for out of bounds page request`() {
         // Given
-        val pageable = PageRequest.of(10, 5)
         val sortedPageable = PageRequest.of(10, 5, Sort.by(Sort.Direction.ASC, "sku"))
-        val emptyPage = PageImpl(emptyList<Product>(), sortedPageable, 2)
+        val emptyPage = PageImpl(emptyList<ProductEntity>(), sortedPageable, 2)
         
         every { productRepository.findAll(sortedPageable) } returns emptyPage
         
@@ -267,12 +261,11 @@ class ProductServiceTest {
     fun `sort by description and filter simultaneously`() {
         // Given
         val products = listOf(
-            Product("ELEC-002", BigDecimal("100.00"), "Alpha Product", "Electronics"),
-            Product("ELEC-003", BigDecimal("75.00"), "Beta Product", "Electronics"),
-            Product("ELEC-001", BigDecimal("50.00"), "Zebra Product", "Electronics")
+            ProductEntity("ELEC-002", BigDecimal("100.00"), "Alpha Product", "Electronics"),
+            ProductEntity("ELEC-003", BigDecimal("75.00"), "Beta Product", "Electronics"),
+            ProductEntity("ELEC-001", BigDecimal("50.00"), "Zebra Product", "Electronics")
         )
-        val pageable = PageRequest.of(0, 10)
-        val sortedPageable = PageRequest.of(0, 10, 
+        val sortedPageable = PageRequest.of(0, 10,
             Sort.by(Sort.Direction.ASC, "description")
                 .and(Sort.by(Sort.Direction.ASC, "sku"))
         )
@@ -300,12 +293,11 @@ class ProductServiceTest {
     fun `ensure deterministic ordering when sorting by field with duplicate values`() {
         // Given products with duplicate prices
         val products = listOf(
-            Product("PROD-003", BigDecimal("50.00"), "Product C", "Electronics"),
-            Product("PROD-001", BigDecimal("50.00"), "Product A", "Electronics"),
-            Product("PROD-002", BigDecimal("50.00"), "Product B", "Electronics"),
-            Product("PROD-004", BigDecimal("75.00"), "Product D", "Electronics")
+            ProductEntity("PROD-003", BigDecimal("50.00"), "Product C", "Electronics"),
+            ProductEntity("PROD-001", BigDecimal("50.00"), "Product A", "Electronics"),
+            ProductEntity("PROD-002", BigDecimal("50.00"), "Product B", "Electronics"),
+            ProductEntity("PROD-004", BigDecimal("75.00"), "Product D", "Electronics")
         )
-        val pageable = PageRequest.of(0, 4)
         // Should sort by price DESC, then by SKU ASC for deterministic ordering
         val sortedPageable = PageRequest.of(0, 4, 
             Sort.by(Sort.Direction.DESC, "price")
@@ -353,15 +345,14 @@ class ProductServiceTest {
     fun `ensure consistent pagination with duplicate values across pages`() {
         // Given products with duplicate categories
         val allProducts = listOf(
-            Product("ELEC-001", BigDecimal("10.00"), "Product 1", "Electronics"),
-            Product("ELEC-002", BigDecimal("20.00"), "Product 2", "Electronics"),
-            Product("ELEC-003", BigDecimal("30.00"), "Product 3", "Electronics"),
-            Product("HOME-001", BigDecimal("40.00"), "Product 4", "Home"),
-            Product("HOME-002", BigDecimal("50.00"), "Product 5", "Home")
+            ProductEntity("ELEC-001", BigDecimal("10.00"), "Product 1", "Electronics"),
+            ProductEntity("ELEC-002", BigDecimal("20.00"), "Product 2", "Electronics"),
+            ProductEntity("ELEC-003", BigDecimal("30.00"), "Product 3", "Electronics"),
+            ProductEntity("HOME-001", BigDecimal("40.00"), "Product 4", "Home"),
+            ProductEntity("HOME-002", BigDecimal("50.00"), "Product 5", "Home")
         )
         
         // First page request
-        val page1Pageable = PageRequest.of(0, 2)
         val page1SortedPageable = PageRequest.of(0, 2,
             Sort.by(Sort.Direction.ASC, "category")
                 .and(Sort.by(Sort.Direction.ASC, "sku"))
@@ -389,7 +380,6 @@ class ProductServiceTest {
         assertEquals("ELEC-002", result1.content[1].sku)
         
         // Second page request
-        val page2Pageable = PageRequest.of(1, 2)
         val page2SortedPageable = PageRequest.of(1, 2,
             Sort.by(Sort.Direction.ASC, "category")
                 .and(Sort.by(Sort.Direction.ASC, "sku"))

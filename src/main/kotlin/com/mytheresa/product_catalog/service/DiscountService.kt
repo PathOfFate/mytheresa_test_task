@@ -1,10 +1,8 @@
 package com.mytheresa.product_catalog.service
 
 import com.mytheresa.product_catalog.config.DiscountProperties
-import com.mytheresa.product_catalog.entity.Product
+import com.mytheresa.product_catalog.domain.model.Product
 import org.springframework.stereotype.Service
-import java.math.BigDecimal
-import java.math.RoundingMode
 
 @Service
 class DiscountService(
@@ -22,20 +20,10 @@ class DiscountService(
     private fun isRuleApplicable(rule: DiscountProperties.DiscountRule, product: Product): Boolean {
         return when (rule.type) {
             DiscountProperties.RuleType.CATEGORY -> 
-                product.category.equals(rule.condition, ignoreCase = true)
+                product.category.value.equals(rule.condition, ignoreCase = true)
                 
             DiscountProperties.RuleType.SKU_PATTERN -> 
-                product.sku.matches(Regex(rule.condition))
-        }
-    }
-    
-    fun calculateFinalPrice(originalPrice: BigDecimal, discountPercentage: Int): BigDecimal {
-        return when (discountPercentage) {
-            0 -> originalPrice
-            else -> {
-                val discountMultiplier = BigDecimal(100 - discountPercentage).divide(BigDecimal(100))
-                originalPrice.multiply(discountMultiplier).setScale(2, RoundingMode.HALF_UP)
-            }
+                product.sku.value.matches(Regex(rule.condition))
         }
     }
 }

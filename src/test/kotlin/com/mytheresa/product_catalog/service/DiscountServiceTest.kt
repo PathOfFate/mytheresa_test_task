@@ -1,7 +1,10 @@
 package com.mytheresa.product_catalog.service
 
 import com.mytheresa.product_catalog.config.DiscountProperties
-import com.mytheresa.product_catalog.entity.Product
+import com.mytheresa.product_catalog.domain.model.Category
+import com.mytheresa.product_catalog.domain.model.Money
+import com.mytheresa.product_catalog.domain.model.Product
+import com.mytheresa.product_catalog.domain.model.SKU
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.assertEquals
 import java.math.BigDecimal
@@ -37,114 +40,114 @@ class DiscountServiceTest {
     fun `apply 15 percent discount for Electronics category`() {
         // Given
         val product = Product(
-            sku = "ELEC-001",
-            price = BigDecimal("100.00"),
+            sku = SKU("ELEC-001"),
+            price = Money(BigDecimal("100.00")),
             description = "Test Electronics",
-            category = "Electronics"
+            category = Category("Electronics"),
         )
         
         // When
         val discount = discountService.calculateDiscount(product)
-        val finalPrice = discountService.calculateFinalPrice(product.price, discount)
+        val finalPrice = product.price.applyDiscountPercent(discount)
         
         // Then
         assertEquals(15, discount)
-        assertEquals(BigDecimal("85.00"), finalPrice)
+        assertEquals(BigDecimal("85.00"), finalPrice.amount)
     }
     
     @Test
     fun `apply 25 percent discount for Home & Kitchen category`() {
         // Given
         val product = Product(
-            sku = "HOME-001",
-            price = BigDecimal("100.00"),
+            sku = SKU("HOME-001"),
+            price = Money(BigDecimal("100.00")),
             description = "Test Kitchen Item",
-            category = "Home & Kitchen"
+            category = Category("Home & Kitchen"),
         )
         
         // When
         val discount = discountService.calculateDiscount(product)
-        val finalPrice = discountService.calculateFinalPrice(product.price, discount)
+        val finalPrice = product.price.applyDiscountPercent(discount)
         
         // Then
         assertEquals(25, discount)
-        assertEquals(BigDecimal("75.00"), finalPrice)
+        assertEquals(BigDecimal("75.00"), finalPrice.amount)
     }
     
     @Test
     fun `apply 30 percent discount for SKU ending with 5`() {
         // Given
         val product = Product(
-            sku = "TEST-005",
-            price = BigDecimal("100.00"),
+            sku = SKU("TEST-005"),
+            price = Money(BigDecimal("100.00")),
             description = "Test Product",
-            category = "Other"
+            category = Category("Other"),
         )
         
         // When
         val discount = discountService.calculateDiscount(product)
-        val finalPrice = discountService.calculateFinalPrice(product.price, discount)
+        val finalPrice = product.price.applyDiscountPercent(discount)
         
         // Then
         assertEquals(30, discount)
-        assertEquals(BigDecimal("70.00"), finalPrice)
+        assertEquals(BigDecimal("70.00"), finalPrice.amount)
     }
     
     @Test
     fun `apply highest discount when multiple conditions match`() {
         // Given - Electronics product with SKU ending in 5
         val product = Product(
-            sku = "ELEC-005",
-            price = BigDecimal("120.00"),
+            sku = SKU("ELEC-005"),
+            price = Money(BigDecimal("120.00")),
             description = "Electronics with special SKU",
-            category = "Electronics"
+            category = Category("Electronics"),
         )
         
         // When
         val discount = discountService.calculateDiscount(product)
-        val finalPrice = discountService.calculateFinalPrice(product.price, discount)
+        val finalPrice = product.price.applyDiscountPercent(discount)
         
         // Then - Should apply 30% (SKU) instead of 15% (Electronics)
         assertEquals(30, discount)
-        assertEquals(BigDecimal("84.00"), finalPrice)
+        assertEquals(BigDecimal("84.00"), finalPrice.amount)
     }
     
     @Test
     fun `not apply discount for other categories`() {
         // Given
         val product = Product(
-            sku = "CLOTH-001",
-            price = BigDecimal("50.00"),
+            sku = SKU("CLOTH-001"),
+            price = Money(BigDecimal("50.00")),
             description = "T-Shirt",
-            category = "Clothing"
+            category = Category("Clothing"),
         )
         
         // When
         val discount = discountService.calculateDiscount(product)
-        val finalPrice = discountService.calculateFinalPrice(product.price, discount)
+        val finalPrice = product.price.applyDiscountPercent(discount)
         
         // Then
         assertEquals(0, discount)
-        assertEquals(BigDecimal("50.00"), finalPrice)
+        assertEquals(BigDecimal("50.00"), finalPrice.amount)
     }
     
     @Test
     fun `round final price to 2 decimal places`() {
         // Given
         val product = Product(
-            sku = "ELEC-001",
-            price = BigDecimal("19.99"),
+            sku = SKU("ELEC-001"),
+            price = Money(BigDecimal("19.99")),
             description = "Wireless Mouse",
-            category = "Electronics"
+            category = Category("Electronics"),
         )
         
         // When
         val discount = discountService.calculateDiscount(product)
-        val finalPrice = discountService.calculateFinalPrice(product.price, discount)
+        val finalPrice = product.price.applyDiscountPercent(discount)
         
         // Then
         assertEquals(15, discount)
-        assertEquals(BigDecimal("16.99"), finalPrice)
-        assertEquals(2, finalPrice.scale())
+        assertEquals(BigDecimal("16.99"), finalPrice.amount)
+        assertEquals(2, finalPrice.amount.scale())
     }
 }
