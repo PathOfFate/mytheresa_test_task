@@ -5,10 +5,10 @@ import io.swagger.v3.oas.annotations.info.Info
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.runApplication
-import com.mytheresa.product_catalog.config.DiscountProperties
+import com.mytheresa.product_catalog.config.DiscountRules
 
 @SpringBootApplication
-@EnableConfigurationProperties(DiscountProperties::class)
+@EnableConfigurationProperties(DiscountRules::class)
 @OpenAPIDefinition(
     info = Info(
         title = "Product Catalog API",
