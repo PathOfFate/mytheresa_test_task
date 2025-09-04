@@ -155,28 +155,6 @@ class ProductControllerIntegrationTest {
     }
     
     @Test
-    fun `should apply 30 percent discount for SKU ending with 5`() {
-        val result = mockMvc.perform(get("/api/products"))
-            .andExpect(status().isOk)
-            .andReturn()
-        
-        val responseBody = result.response.contentAsString
-        val response = objectMapper.readValue<Map<String, Any>>(responseBody)
-        
-        val content = getContentList(response)
-        
-        // ELEC-005 at index 3
-        assertEquals("ELEC-005", content[3]["sku"])
-        assertEquals(30, content[3]["discount"])
-        assertEquals(105.0, content[3]["finalPrice"])
-        
-        // OTHER-015 at index 6
-        assertEquals("OTHER-015", content[6]["sku"])
-        assertEquals(30, content[6]["discount"])
-        assertEquals(17.5, content[6]["finalPrice"])
-    }
-    
-    @Test
     fun `should apply highest discount when multiple conditions match`() {
         val result = mockMvc.perform(get("/api/products"))
             .andExpect(status().isOk)
@@ -416,39 +394,6 @@ class ProductControllerIntegrationTest {
         assertEquals(35.0, content[1]["price"])
         assertEquals(0, content[1]["discount"])
         assertEquals(35.0, content[1]["finalPrice"])
-    }
-    
-    @Test
-    fun `should verify specific product discounts in test dataset`() {
-        val result = mockMvc.perform(get("/api/products"))
-            .andExpect(status().isOk)
-            .andReturn()
-        
-        val responseBody = result.response.contentAsString
-        val response = objectMapper.readValue<Map<String, Any>>(responseBody)
-        
-        val content = getContentList(response)
-        
-        // Verify each product has correct discount
-        // CLOTH-001 at index 0 - Clothing (no discount)
-        assertEquals("CLOTH-001", content[0]["sku"])
-        assertEquals(0, content[0]["discount"])
-        
-        // ELEC-001 at index 2 - Electronics (15%)
-        assertEquals("ELEC-001", content[2]["sku"])
-        assertEquals(15, content[2]["discount"])
-        
-        // ELEC-005 at index 3 - SKU ending with 5 (30%)
-        assertEquals("ELEC-005", content[3]["sku"])
-        assertEquals(30, content[3]["discount"])
-        
-        // HOME-001 at index 4 - Home & Kitchen (25%)
-        assertEquals("HOME-001", content[4]["sku"])
-        assertEquals(25, content[4]["discount"])
-        
-        // OTHER-015 at index 6 - SKU ending with 15 (30%)
-        assertEquals("OTHER-015", content[6]["sku"])
-        assertEquals(30, content[6]["discount"])
     }
     
     @Test

@@ -3,6 +3,7 @@ package com.mytheresa.product_catalog.service
 import com.mytheresa.product_catalog.config.DiscountProperties
 import com.mytheresa.product_catalog.entity.Product
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Assertions.assertEquals
 import java.math.BigDecimal
 
 class DiscountServiceTest {
@@ -47,8 +48,8 @@ class DiscountServiceTest {
         val finalPrice = discountService.calculateFinalPrice(product.price, discount)
         
         // Then
-        assert(discount == 15)
-        assert(finalPrice == BigDecimal("85.00"))
+        assertEquals(15, discount)
+        assertEquals(BigDecimal("85.00"), finalPrice)
     }
     
     @Test
@@ -66,8 +67,8 @@ class DiscountServiceTest {
         val finalPrice = discountService.calculateFinalPrice(product.price, discount)
         
         // Then
-        assert(discount == 25)
-        assert(finalPrice == BigDecimal("75.00"))
+        assertEquals(25, discount)
+        assertEquals(BigDecimal("75.00"), finalPrice)
     }
     
     @Test
@@ -85,8 +86,8 @@ class DiscountServiceTest {
         val finalPrice = discountService.calculateFinalPrice(product.price, discount)
         
         // Then
-        assert(discount == 30)
-        assert(finalPrice == BigDecimal("70.00"))
+        assertEquals(30, discount)
+        assertEquals(BigDecimal("70.00"), finalPrice)
     }
     
     @Test
@@ -104,8 +105,8 @@ class DiscountServiceTest {
         val finalPrice = discountService.calculateFinalPrice(product.price, discount)
         
         // Then - Should apply 30% (SKU) instead of 15% (Electronics)
-        assert(discount == 30)
-        assert(finalPrice == BigDecimal("84.00"))
+        assertEquals(30, discount)
+        assertEquals(BigDecimal("84.00"), finalPrice)
     }
     
     @Test
@@ -123,8 +124,8 @@ class DiscountServiceTest {
         val finalPrice = discountService.calculateFinalPrice(product.price, discount)
         
         // Then
-        assert(discount == 0)
-        assert(finalPrice == BigDecimal("50.00"))
+        assertEquals(0, discount)
+        assertEquals(BigDecimal("50.00"), finalPrice)
     }
     
     @Test
@@ -142,8 +143,8 @@ class DiscountServiceTest {
         val finalPrice = discountService.calculateFinalPrice(product.price, discount)
         
         // Then
-        assert(discount == 15)
-        assert(finalPrice == BigDecimal("16.99"))
-        assert(finalPrice.scale() == 2)
+        assertEquals(15, discount)
+        assertEquals(BigDecimal("16.99"), finalPrice)
+        assertEquals(2, finalPrice.scale())
     }
 }

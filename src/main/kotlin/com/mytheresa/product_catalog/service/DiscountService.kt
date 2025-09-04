@@ -12,11 +12,11 @@ class DiscountService(
 ) {
     
     fun calculateDiscount(product: Product): Int {
-        val applicableDiscounts = discountProperties.rules
+
+        return discountProperties.rules
             .filter { rule -> isRuleApplicable(rule, product) }
-            .map { it.percentage }
-        
-        return applicableDiscounts.maxOrNull() ?: 0
+            .maxOfOrNull { it.percentage }
+            ?: 0
     }
     
     private fun isRuleApplicable(rule: DiscountProperties.DiscountRule, product: Product): Boolean {
@@ -30,11 +30,12 @@ class DiscountService(
     }
     
     fun calculateFinalPrice(originalPrice: BigDecimal, discountPercentage: Int): BigDecimal {
-        if (discountPercentage == 0) {
-            return originalPrice
+        return when (discountPercentage) {
+            0 -> originalPrice
+            else -> {
+                val discountMultiplier = BigDecimal(100 - discountPercentage).divide(BigDecimal(100))
+                originalPrice.multiply(discountMultiplier).setScale(2, RoundingMode.HALF_UP)
+            }
         }
-        
-        val discountMultiplier = BigDecimal(100 - discountPercentage).divide(BigDecimal(100))
-        return originalPrice.multiply(discountMultiplier).setScale(2, RoundingMode.HALF_UP)
     }
 }

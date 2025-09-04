@@ -47,11 +47,9 @@ class ProductService(
         }
         val pageable = PageRequest.of(pageNumber, pageSize, sort)
 
-        val productsPage = if (category != null) {
-                productRepository.findByCategoryIgnoreCase(category, pageable)
-            } else {
-                productRepository.findAll(pageable)
-            }
+        val productsPage = category
+            ?.let { productRepository.findByCategoryIgnoreCase(it, pageable) }
+            ?: productRepository.findAll(pageable)
 
         return productsPage.map { product ->
             val discount = discountService.calculateDiscount(product)
