@@ -22,6 +22,7 @@ data class Money(val amount: BigDecimal) {
     }
 
     fun applyDiscountPercent(percent: Int): Money {
+        require(percent in 0..100) { "Discount percentage must be between 0 and 100, but was $percent" }
         if (percent == 0) return this
         val multiplier = BigDecimal(100 - percent).divide(BigDecimal(100))
         return Money(amount.multiply(multiplier).setScale(2, RoundingMode.HALF_UP))

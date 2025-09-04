@@ -40,4 +40,29 @@ class MoneyTest {
         val discounted = money.applyDiscountPercent(15)
         assertEquals(BigDecimal("85.00"), discounted.amount)
     }
+
+    @Test
+    fun `should throw exception when discount percentage is negative`() {
+        val money = Money(BigDecimal("100.00"))
+        val exception = assertThrows<IllegalArgumentException> {
+            money.applyDiscountPercent(-10)
+        }
+        assertEquals("Discount percentage must be between 0 and 100, but was -10", exception.message)
+    }
+
+    @Test
+    fun `should throw exception when discount percentage exceeds 100`() {
+        val money = Money(BigDecimal("100.00"))
+        val exception = assertThrows<IllegalArgumentException> {
+            money.applyDiscountPercent(150)
+        }
+        assertEquals("Discount percentage must be between 0 and 100, but was 150", exception.message)
+    }
+
+    @Test
+    fun `should apply 100 percent discount correctly`() {
+        val money = Money(BigDecimal("100.00"))
+        val discounted = money.applyDiscountPercent(100)
+        assertEquals(BigDecimal("0.00"), discounted.amount)
+    }
 }
