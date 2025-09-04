@@ -3,7 +3,7 @@ package com.mytheresa.product_catalog.config
 import org.springframework.boot.context.properties.ConfigurationProperties
 
 @ConfigurationProperties(prefix = "discount")
-data class DiscountRules(
+data class DiscountProperties(
     val rules: List<DiscountRule> = emptyList()
 ) {
     data class DiscountRule(

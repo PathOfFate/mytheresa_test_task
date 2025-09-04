@@ -1,6 +1,6 @@
 package com.mytheresa.product_catalog.service
 
-import com.mytheresa.product_catalog.config.DiscountRules
+import com.mytheresa.product_catalog.config.DiscountProperties
 import com.mytheresa.product_catalog.domain.model.Category
 import com.mytheresa.product_catalog.domain.model.Money
 import com.mytheresa.product_catalog.domain.model.Product
@@ -11,30 +11,30 @@ import java.math.BigDecimal
 
 class DiscountServiceTest {
     
-    private val discountRules = DiscountRules(
+    private val discountProperties = DiscountProperties(
         rules = listOf(
-            DiscountRules.DiscountRule(
+            DiscountProperties.DiscountRule(
                 name = "Electronics Category",
-                type = DiscountRules.RuleType.CATEGORY,
+                type = DiscountProperties.RuleType.CATEGORY,
                 condition = "Electronics",
                 percentage = 15,
             ),
-            DiscountRules.DiscountRule(
+            DiscountProperties.DiscountRule(
                 name = "Home & Kitchen Category",
-                type = DiscountRules.RuleType.CATEGORY,
+                type = DiscountProperties.RuleType.CATEGORY,
                 condition = "Home & Kitchen",
                 percentage = 25,
             ),
-            DiscountRules.DiscountRule(
+            DiscountProperties.DiscountRule(
                 name = "SKU Ending with 5",
-                type = DiscountRules.RuleType.SKU_PATTERN,
+                type = DiscountProperties.RuleType.SKU_PATTERN,
                 condition = ".*5$",
                 percentage = 30,
             )
         )
     )
     
-    private val discountService = DiscountService(discountRules)
+    private val discountService = DiscountService(discountProperties)
     
     @Test
     fun `apply 15 percent discount for Electronics category`() {
